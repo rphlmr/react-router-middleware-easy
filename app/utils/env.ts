@@ -3,11 +3,11 @@ import { z } from "zod";
 import { isBrowser } from "./is-browser";
 
 export const EnvSchema = z.object({
-  APP_NAME: z.string().min(1),
-  APP_URL: z.string().min(1),
-  SESSION_SECRET: z.string().min(1),
-  NODE_ENV: z.enum(["development", "production", "test"]),
-  TZ: z.literal("UTC"),
+  APP_NAME: z.string().min(1).default("RR Middleware"),
+  APP_URL: z.string().min(1).default("http://localhost:3000"),
+  SESSION_SECRET: z.string().min(1).default("default_secret"),
+  NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
+  TZ: z.literal("UTC").default("UTC"),
 });
 
 type Env = z.infer<typeof EnvSchema>;
