@@ -1,14 +1,21 @@
 import {
-  isRouteErrorResponse,
   Links,
   Meta,
   Outlet,
   Scripts,
   ScrollRestoration,
+  isRouteErrorResponse,
+  useRouteLoaderData,
 } from "react-router";
 
 import type { Route } from "./+types/root";
 import "./app.css";
+import { serverCatchAll } from "./middleware/catch-all";
+import { serverLogger } from "./middleware/logger";
+import { sessionMiddleware } from "./middleware/session";
+import { getBrowserEnv } from "./utils/env";
+
+export const unstable_middleware = [serverCatchAll, serverLogger, sessionMiddleware];
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -23,17 +30,28 @@ export const links: Route.LinksFunction = () => [
   },
 ];
 
+export function loader() {
+  return { env: getBrowserEnv() };
+}
+
 export function Layout({ children }: { children: React.ReactNode }) {
+  const { env } = useRouteLoaderData<typeof loader>("root") || {};
+
   return (
-    <html lang="en">
+    <html lang="en" className="h-screen">
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <Meta />
         <Links />
       </head>
-      <body>
+      <body className="h-full">
         {children}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `window.env = ${JSON.stringify(env)}`,
+          }}
+        />
         <ScrollRestoration />
         <Scripts />
       </body>
@@ -51,11 +69,9 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
   let stack: string | undefined;
 
   if (isRouteErrorResponse(error)) {
+    console.log("isRouteError", error);
     message = error.status === 404 ? "404" : "Error";
-    details =
-      error.status === 404
-        ? "The requested page could not be found."
-        : error.statusText || details;
+    details = error.status === 404 ? "The requested page could not be found." : error.statusText || details;
   } else if (import.meta.env.DEV && error && error instanceof Error) {
     details = error.message;
     stack = error.stack;
