@@ -1,4 +1,7 @@
+packages:
+  - .
+
 onlyBuiltDependencies:
-  - '@biomejs/biome'
+  - "@biomejs/biome"
   - core-js
   - esbuild
